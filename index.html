@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>AIとじゃんけん</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>AIとじゃんけん</h1>
+        <div class="choices">
+            <button onclick="play('グー')">グー</button>
+            <button onclick="play('チョキ')">チョキ</button>
+            <button onclick="play('パー')">パー</button>
+        </div>
+        <div id="result"></div>
+        <div class="statistics">
+            <h2>統計</h2>
+            <p id="total-games">総ゲーム数: 0</p>
+            <p id="win-count">勝数: 0</p>
+            <p id="draw-count">引き分け数: 0</p>
+            <p id="loss-count">負け数: 0</p>
+            <p id="win-rate">勝率（引き分け除外）: 0%</p>
+        </div>
+        <input type="file" id="file-upload" multiple>
+        <button onclick="uploadFiles()">Excel読み取り</button>
+    </div>
+
+    <script>
+        function play(move) {
+            fetch('/play', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ move })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').innerText = `あなた: ${data.player}, AI: ${data.ai}, 結果: ${data.result}`;
+                document.getElementById('total-games').innerText = `総ゲーム数: ${data.stats.total}`;
+                document.getElementById('win-count').innerText = `勝数: ${data.stats.wins}`;
+                document.getElementById('draw-count').innerText = `引き分け数: ${data.stats.draws}`;
+                document.getElementById('loss-count').innerText = `負け数: ${data.stats.losses}`;
+                document.getElementById('win-rate').innerText = `勝率（引き分け除外）: ${data.stats.win_rate}`;
+            });
+        }
+
+        function uploadFiles() {
+            const input = document.getElementById('file-upload');
+            const formData = new FormData();
+            for (const file of input.files) {
+                formData.append('files', file);
+            }
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(res => res.json())
+              .then(data => alert(data.message));
+        }
+    </script>
+</body>
+</html>
